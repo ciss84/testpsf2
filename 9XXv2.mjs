@@ -84,6 +84,7 @@ const ta_jop1 = `
 mov rdi, qword ptr [rsi + 0x18]
 mov rax, qword ptr [rdi]
 call qword ptr [rax + 0xb8]
+`;
 const jop1 = `
 mov rdi, qword ptr [rsi + 0x20]
 mov rax, qword ptr [rdi]
